@@ -1,9 +1,22 @@
-"use client";
+"use client"
 
-import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import Dashnav from "@/components/ui/Dashnav";
+import { useState } from "react"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import {
+  Package,
+  Search,
+  Plus,
+  Filter,
+  ArrowUpDown,
+  MoreHorizontal,
+  Truck,
+  CheckCircle2,
+  Clock,
+  AlertCircle,
+} from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,116 +24,14 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  AlertCircle,
-  ArrowUpDown,
-  CheckCircle2,
-  Clock,
-  Filter,
-  MoreHorizontal,
-  Package,
-  Plus,
-  Search,
-  Truck,
-} from "lucide-react";
-import Link from "next/link";
-
-// Shipment Type
-type Shipment = {
-  id: string;
-  description: string;
-  sender: string;
-  receiver: string;
-  status: string;
-  date: string;
-  statusCode: number;
-};
-
-const useFormattedDate = (dateString: string) => {
-  const [formatted, setFormatted] = useState("");
-  useEffect(() => {
-    const date = new Date(dateString);
-    const formattedDate = new Intl.DateTimeFormat("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    }).format(date);
-    setFormatted(formattedDate);
-  }, [dateString]);
-  return formatted;
-};
-
-const getStatusIcon = (statusCode: number) => {
-  switch (statusCode) {
-    case 1:
-      return <Clock className="h-4 w-4 text-yellow-500" />;
-    case 2:
-      return <Truck className="h-4 w-4 text-blue-500" />;
-    case 3:
-      return <AlertCircle className="h-4 w-4 text-purple-500" />;
-    case 4:
-      return <CheckCircle2 className="h-4 w-4 text-green-500" />;
-    default:
-      return <Package className="h-4 w-4" />;
-  }
-};
-
-const ShipmentRow = ({ shipment }: { shipment: Shipment }) => {
-  const formattedDate = useFormattedDate(shipment.date);
-
-  return (
-    <TableRow>
-      <TableCell className="font-medium">{shipment.id}</TableCell>
-      <TableCell>{shipment.description}</TableCell>
-      <TableCell className="hidden md:table-cell">{formattedDate}</TableCell>
-      <TableCell>
-        <div className="flex items-center gap-2">
-          {getStatusIcon(shipment.statusCode)}
-          <span>{shipment.status}</span>
-        </div>
-      </TableCell>
-      <TableCell className="text-right">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <MoreHorizontal className="h-4 w-4" />
-              <span className="sr-only">Actions</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem>
-              <Link href={`/track?id=${shipment.id}`} className="w-full">
-                View Details
-              </Link>
-            </DropdownMenuItem>
-            {shipment.statusCode === 4 ? (
-              <DropdownMenuItem>View Proof of Delivery</DropdownMenuItem>
-            ) : (
-              <DropdownMenuItem>Update Status</DropdownMenuItem>
-            )}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>View on Blockchain</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </TableCell>
-    </TableRow>
-  );
-};
+} from "@/components/ui/dropdown-menu"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import Dashnav from "@/components/ui/Dashnav"
 
 export default function DashboardPage() {
-  const shipments: Shipment[] = [
+  // Mock data - in a real app, this would come from the blockchain via Pharos
+  const shipments = [
     {
       id: "DPC-1234-5678-90",
       description: "Electronics Package",
@@ -157,26 +68,53 @@ export default function DashboardPage() {
       date: "2023-06-10T10:30:00Z",
       statusCode: 1,
     },
-  ];
+  ]
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("")
+  const [activeTab, setActiveTab] = useState("all")
 
   const filteredShipments = shipments.filter((shipment) => {
+    // Filter by search term
     if (
       searchTerm &&
       !shipment.id.toLowerCase().includes(searchTerm.toLowerCase()) &&
       !shipment.description.toLowerCase().includes(searchTerm.toLowerCase())
     ) {
-      return false;
+      return false
     }
-    if (activeTab === "registered" && shipment.statusCode !== 1) return false;
-    if (activeTab === "in-transit" && shipment.statusCode !== 2) return false;
-    if (activeTab === "out-for-delivery" && shipment.statusCode !== 3)
-      return false;
-    if (activeTab === "delivered" && shipment.statusCode !== 4) return false;
-    return true;
-  });
+
+    // Filter by tab
+    if (activeTab === "registered" && shipment.statusCode !== 1) return false
+    if (activeTab === "in-transit" && shipment.statusCode !== 2) return false
+    if (activeTab === "out-for-delivery" && shipment.statusCode !== 3) return false
+    if (activeTab === "delivered" && shipment.statusCode !== 4) return false
+
+    return true
+  })
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString)
+    return new Intl.DateTimeFormat("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    }).format(date)
+  }
+
+  const getStatusIcon = (statusCode) => {
+    switch (statusCode) {
+      case 1:
+        return <Clock className="h-4 w-4 text-yellow-500" />
+      case 2:
+        return <Truck className="h-4 w-4 text-blue-500" />
+      case 3:
+        return <AlertCircle className="h-4 w-4 text-purple-500" />
+      case 4:
+        return <CheckCircle2 className="h-4 w-4 text-green-500" />
+      default:
+        return <Package className="h-4 w-4" />
+    }
+  }
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -266,16 +204,13 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
           </div>
-
           <Tabs defaultValue="all" onValueChange={setActiveTab}>
             <div className="flex items-center justify-between">
               <TabsList>
                 <TabsTrigger value="all">All Shipments</TabsTrigger>
                 <TabsTrigger value="registered">Registered</TabsTrigger>
                 <TabsTrigger value="in-transit">In Transit</TabsTrigger>
-                <TabsTrigger value="out-for-delivery">
-                  Out for Delivery
-                </TabsTrigger>
+                <TabsTrigger value="out-for-delivery">Out for Delivery</TabsTrigger>
                 <TabsTrigger value="delivered">Delivered</TabsTrigger>
               </TabsList>
               <Button variant="ghost" size="sm" className="gap-1">
@@ -283,59 +218,339 @@ export default function DashboardPage() {
                 <span className="hidden sm:inline">Sort</span>
               </Button>
             </div>
-
-            {["all", "registered", "in-transit", "out-for-delivery", "delivered"].map(
-              (tab) => (
-                <TabsContent key={tab} value={tab} className="mt-4">
-                  <Card>
-                    <CardContent className="p-0 overflow-x-auto">
-                      <div className="min-w-[600px]">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>Tracking ID</TableHead>
-                              <TableHead>Description</TableHead>
-                              <TableHead className="hidden md:table-cell">
-                                Date
-                              </TableHead>
-                              <TableHead>Status</TableHead>
-                              <TableHead className="text-right">Actions</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {filteredShipments.length > 0 ? (
-                              filteredShipments
-                                .filter((shipment) => {
-                                  if (tab === "registered" && shipment.statusCode !== 1) return false;
-                                  if (tab === "in-transit" && shipment.statusCode !== 2) return false;
-                                  if (tab === "out-for-delivery" && shipment.statusCode !== 3) return false;
-                                  if (tab === "delivered" && shipment.statusCode !== 4) return false;
-                                  return true;
-                                })
-                                .map((shipment) => (
-                                  <ShipmentRow key={shipment.id} shipment={shipment} />
-                                ))
-                            ) : (
-                              <TableRow>
-                                <TableCell
-                                  colSpan={5}
-                                  className="text-center py-6 text-gray-500"
-                                >
-                                  No {tab.replace(/-/g, " ")} shipments found
-                                </TableCell>
-                              </TableRow>
-                            )}
-                          </TableBody>
-                        </Table>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-              )
-            )}
+            <TabsContent value="all" className="mt-4">
+              <Card>
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Tracking ID</TableHead>
+                        <TableHead>Description</TableHead>
+                        <TableHead className="hidden md:table-cell">Date</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredShipments.length > 0 ? (
+                        filteredShipments.map((shipment) => (
+                          <TableRow key={shipment.id}>
+                            <TableCell className="font-medium">{shipment.id}</TableCell>
+                            <TableCell>{shipment.description}</TableCell>
+                            <TableCell className="hidden md:table-cell">{formatDate(shipment.date)}</TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                {getStatusIcon(shipment.statusCode)}
+                                <span>{shipment.status}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                    <span className="sr-only">Actions</span>
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                  <DropdownMenuItem>
+                                    <Link href={`/track?id=${shipment.id}`} className="w-full">
+                                      View Details
+                                    </Link>
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem>Update Status</DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem>View on Blockchain</DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={5} className="text-center py-6 text-gray-500">
+                            No shipments found matching your criteria
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            <TabsContent value="registered" className="mt-4">
+              <Card>
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Tracking ID</TableHead>
+                        <TableHead>Description</TableHead>
+                        <TableHead className="hidden md:table-cell">Date</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredShipments.length > 0 ? (
+                        filteredShipments.map((shipment) => (
+                          <TableRow key={shipment.id}>
+                            <TableCell className="font-medium">{shipment.id}</TableCell>
+                            <TableCell>{shipment.description}</TableCell>
+                            <TableCell className="hidden md:table-cell">{formatDate(shipment.date)}</TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                {getStatusIcon(shipment.statusCode)}
+                                <span>{shipment.status}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                    <span className="sr-only">Actions</span>
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                  <DropdownMenuItem>
+                                    <Link href={`/track?id=${shipment.id}`} className="w-full">
+                                      View Details
+                                    </Link>
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem>Update Status</DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem>View on Blockchain</DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={5} className="text-center py-6 text-gray-500">
+                            No registered shipments found
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            <TabsContent value="in-transit" className="mt-4">
+              {/* Similar table structure for in-transit shipments */}
+              <Card>
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Tracking ID</TableHead>
+                        <TableHead>Description</TableHead>
+                        <TableHead className="hidden md:table-cell">Date</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredShipments.length > 0 ? (
+                        filteredShipments.map((shipment) => (
+                          <TableRow key={shipment.id}>
+                            <TableCell className="font-medium">{shipment.id}</TableCell>
+                            <TableCell>{shipment.description}</TableCell>
+                            <TableCell className="hidden md:table-cell">{formatDate(shipment.date)}</TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                {getStatusIcon(shipment.statusCode)}
+                                <span>{shipment.status}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                    <span className="sr-only">Actions</span>
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                  <DropdownMenuItem>
+                                    <Link href={`/track?id=${shipment.id}`} className="w-full">
+                                      View Details
+                                    </Link>
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem>Update Status</DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem>View on Blockchain</DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={5} className="text-center py-6 text-gray-500">
+                            No in-transit shipments found
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            <TabsContent value="out-for-delivery" className="mt-4">
+              {/* Similar table structure for out-for-delivery shipments */}
+              <Card>
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Tracking ID</TableHead>
+                        <TableHead>Description</TableHead>
+                        <TableHead className="hidden md:table-cell">Date</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredShipments.length > 0 ? (
+                        filteredShipments.map((shipment) => (
+                          <TableRow key={shipment.id}>
+                            <TableCell className="font-medium">{shipment.id}</TableCell>
+                            <TableCell>{shipment.description}</TableCell>
+                            <TableCell className="hidden md:table-cell">{formatDate(shipment.date)}</TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                {getStatusIcon(shipment.statusCode)}
+                                <span>{shipment.status}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                    <span className="sr-only">Actions</span>
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                  <DropdownMenuItem>
+                                    <Link href={`/track?id=${shipment.id}`} className="w-full">
+                                      View Details
+                                    </Link>
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem>Update Status</DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem>View on Blockchain</DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={5} className="text-center py-6 text-gray-500">
+                            No out-for-delivery shipments found
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            <TabsContent value="delivered" className="mt-4">
+              {/* Similar table structure for delivered shipments */}
+              <Card>
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Tracking ID</TableHead>
+                        <TableHead>Description</TableHead>
+                        <TableHead className="hidden md:table-cell">Date</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredShipments.length > 0 ? (
+                        filteredShipments.map((shipment) => (
+                          <TableRow key={shipment.id}>
+                            <TableCell className="font-medium">{shipment.id}</TableCell>
+                            <TableCell>{shipment.description}</TableCell>
+                            <TableCell className="hidden md:table-cell">{formatDate(shipment.date)}</TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                {getStatusIcon(shipment.statusCode)}
+                                <span>{shipment.status}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                    <span className="sr-only">Actions</span>
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                  <DropdownMenuItem>
+                                    <Link href={`/track?id=${shipment.id}`} className="w-full">
+                                      View Details
+                                    </Link>
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem>View Proof of Delivery</DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem>View on Blockchain</DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={5} className="text-center py-6 text-gray-500">
+                            No delivered shipments found
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </TabsContent>
           </Tabs>
         </div>
       </main>
+      <footer className="border-t bg-gray-50">
+        <div className="container flex flex-col gap-6 py-8 md:flex-row md:items-center md:justify-between md:py-12 px-4 md:px-6">
+          <div className="flex flex-col gap-2">
+            <Link href="/" className="flex items-center gap-2">
+              <Package className="h-5 w-5 text-teal-600" />
+              <span className="text-lg font-bold">dPackChain</span>
+            </Link>
+            <p className="text-sm text-gray-500">Track your parcels... on-chain.</p>
+          </div>
+          <nav className="flex gap-4 md:gap-6">
+            <Link href="#" className="text-sm font-medium hover:underline underline-offset-4">
+              Terms
+            </Link>
+            <Link href="#" className="text-sm font-medium hover:underline underline-offset-4">
+              Privacy
+            </Link>
+            <Link href="#" className="text-sm font-medium hover:underline underline-offset-4">
+              Contact
+            </Link>
+          </nav>
+        </div>
+      </footer>
     </div>
-  );
+  )
 }
